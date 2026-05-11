@@ -1,0 +1,8 @@
+node_modules/**
+.git/**
+.wrangler/**
+tests/**
+package.json
+package-lock.json
+vitest.config.js
+*.log

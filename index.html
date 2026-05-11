@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>怒るおじさんゲーム</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!--
+    画像ファイルはこのHTMLと同じフォルダに置いてください:
+    - img/normal.png（通常時）
+    - img/angry.png（ブチギレ時）
+  -->
+
+  <div id="hud">
+    <div><span id="modeLabel">3x3</span>の顔をタップ</div>
+    <div>9個のうち1個だけハズレ（押すと怒る）</div>
+  </div>
+
+  <div id="modeSwitch" class="mode-switch" aria-label="mode switch">
+    <button class="mode-button is-active" data-size="3">3x3</button>
+    <button class="mode-button" data-size="4">4x4</button>
+    <button class="mode-button" data-size="5">5x5</button>
+  </div>
+
+  <div id="stage" aria-label="anger game stage">
+    <div id="character">
+      <div id="faceGrid" aria-label="face grid"></div>
+    </div>
+  </div>
+
+  <button id="resetButton" class="reset-button" hidden>もう一回</button>
+
+  <div id="angryOverlay" class="angry-overlay" hidden>
+    <img id="angryZoomFace" class="angry-zoom-face" src="img/angry.png" alt="怒った顔" />
+    <p id="angryLine" class="angry-line" aria-live="polite"></p>
+  </div>
+
+  <div id="hint">顔をタップして怒らせる</div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>

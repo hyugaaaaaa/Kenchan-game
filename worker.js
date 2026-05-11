@@ -9,39 +9,47 @@ const DEFAULT_PASSWORD = "ケンシロウスペシャル";
 
 export default {
   async fetch(request, env) {
-    const url = new URL(request.url);
-    const expectedPassword = env.BASIC_AUTH_PASSWORD || DEFAULT_PASSWORD;
-    const authToken = await createAuthToken(expectedPassword, env.AUTH_COOKIE_SALT);
-
-    if (url.pathname === FAVICON_PATH) {
-      return new Response(null, {
-        status: 204,
-        headers: { "cache-control": "public, max-age=3600" },
-      });
-    }
-
-    if (url.pathname === LOGIN_PATH) {
-      if (request.method === "GET") {
-        return renderLoginPage(getNextPath(url.searchParams.get("next")), url.searchParams.get("e") === "1");
-      }
-      if (request.method === "POST") {
-        return handleLogin(request, url, expectedPassword, authToken);
-      }
-      return new Response("Method Not Allowed", { status: 405 });
-    }
-
-    if (url.pathname === LOGOUT_PATH) {
-      return handleLogout(url);
-    }
-
-    if (!hasValidSession(request, authToken)) {
-      return redirectToLogin(url);
-    }
-
     try {
-      return await env.ASSETS.fetch(request);
-    } catch {
-      return new Response("Not Found", { status: 404 });
+      const url = new URL(request.url);
+      const expectedPassword = env.BASIC_AUTH_PASSWORD || DEFAULT_PASSWORD;
+      const authToken = createAuthToken(expectedPassword, env.AUTH_COOKIE_SALT);
+
+      if (url.pathname === FAVICON_PATH) {
+        return new Response(null, {
+          status: 204,
+          headers: { "cache-control": "public, max-age=3600" },
+        });
+      }
+
+      if (url.pathname === LOGIN_PATH) {
+        if (request.method === "GET") {
+          return renderLoginPage(getNextPath(url.searchParams.get("next")), url.searchParams.get("e") === "1");
+        }
+        if (request.method === "POST") {
+          return handleLogin(request, url, expectedPassword, authToken);
+        }
+        return new Response("Method Not Allowed", { status: 405 });
+      }
+
+      if (url.pathname === LOGOUT_PATH) {
+        return handleLogout(url);
+      }
+
+      if (!hasValidSession(request, authToken)) {
+        return redirectToLogin(url);
+      }
+
+      try {
+        return await env.ASSETS.fetch(request);
+      } catch {
+        return new Response("Not Found", { status: 404 });
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown worker error";
+      return new Response(`Worker runtime error: ${message}`, {
+        status: 500,
+        headers: { "content-type": "text/plain; charset=UTF-8", "cache-control": "no-store" },
+      });
     }
   },
 };
@@ -111,18 +119,27 @@ function getNextPath(rawNext) {
   return nextValue;
 }
 
-async function createAuthToken(password, salt = "kenchan-cookie") {
-  const data = encoder.encode(`${password}:${salt}`);
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  const bytes = new Uint8Array(digest);
-  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+function createAuthToken(password, salt = "kenchan-cookie") {
+  const source = `${password}:${salt}`;
+  let hash = 2166136261;
+  for (let i = 0; i < source.length; i += 1) {
+    hash ^= source.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `k${(hash >>> 0).toString(16)}`;
 }
 
 function timingSafeEqual(a, b) {
   const aBytes = encoder.encode(a);
   const bBytes = encoder.encode(b);
-  if (aBytes.byteLength !== bBytes.byteLength) return false;
-  return crypto.subtle.timingSafeEqual(aBytes, bBytes);
+  const maxLen = Math.max(aBytes.length, bBytes.length);
+  let diff = aBytes.length === bBytes.length ? 0 : 1;
+  for (let i = 0; i < maxLen; i += 1) {
+    const av = i < aBytes.length ? aBytes[i] : 0;
+    const bv = i < bBytes.length ? bBytes[i] : 0;
+    diff |= av ^ bv;
+  }
+  return diff === 0;
 }
 
 function renderLoginPage(nextPath, showError) {

@@ -8,6 +8,7 @@ export function createAngerGame(options) {
     angryLines = [],
     bodyElement = document.body,
     faceNormalSrc = "img/normal.png",
+    faceNormalSrcs = null,
     faceAngrySrc = "img/angry.png",
     gridSize = 3,
     random = Math.random,
@@ -39,7 +40,8 @@ export function createAngerGame(options) {
       const tile = document.createElement("img");
       tile.className = "face-tile";
       tile.alt = `顔 ${i + 1}`;
-      tile.src = faceNormalSrc;
+      tile.dataset.normalSrc = pickNormalSrc(faceNormalSrcs, faceNormalSrc, random);
+      tile.src = tile.dataset.normalSrc;
       tile.dataset.index = String(i);
       tile.dataset.state = "normal";
 
@@ -124,7 +126,7 @@ export function createAngerGame(options) {
     tile.classList.remove("angry");
     tile.classList.remove("is-wobbling");
     tile.classList.add("removed");
-    tile.src = faceNormalSrc;
+    tile.src = tile.dataset.normalSrc || faceNormalSrc;
   }
 
   function setTileAngry(tile) {
@@ -215,6 +217,14 @@ function pickUnique(items, count, random = Math.random) {
 function pickRandomLine(lines, random = Math.random) {
   if (lines.length === 1) return lines[0];
   return lines[randomIndex(lines.length, random)];
+}
+
+function pickNormalSrc(srcList, fallbackSrc, random = Math.random) {
+  if (!Array.isArray(srcList) || srcList.length === 0) return fallbackSrc;
+  const candidates = srcList.filter((src) => typeof src === "string" && src.trim() !== "");
+  if (candidates.length === 0) return fallbackSrc;
+  if (candidates.length === 1) return candidates[0];
+  return candidates[randomIndex(candidates.length, random)];
 }
 
 export function makeFallback(text, bg, fg, w, h) {

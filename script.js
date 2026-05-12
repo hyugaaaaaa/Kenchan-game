@@ -45,6 +45,7 @@ function mountGame(gridSize) {
     angryLineElement: angryLine,
     angryLines,
     faceNormalSrc: "img/normal.png",
+    faceNormalSrcs: ["img/normal.png", "img/normal2.png"],
     faceAngrySrc: "img/angry.png",
     gridSize,
   });

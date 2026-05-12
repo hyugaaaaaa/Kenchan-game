@@ -207,7 +207,7 @@ function renderLoginPage(nextPath, showError) {
     ${errorHtml}
     <form method="post" action="${LOGIN_PATH}">
       <input type="hidden" name="next" value="${escapeHtml(nextPath)}" />
-      <input type="password" name="password" placeholder="パスワード" autocomplete="current-password" required />
+      <input type="text" name="password" placeholder="パスワード" autocomplete="off" spellcheck="false" required />
       <button type="submit">入る</button>
     </form>
   </main>

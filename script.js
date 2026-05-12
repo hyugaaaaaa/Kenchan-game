@@ -9,17 +9,19 @@ const modeLabel = document.getElementById("modeLabel");
 const modeRule = document.getElementById("modeRule");
 const modeButtons = Array.from(document.querySelectorAll(".mode-button"));
 const angryLines = [
-  "誰の許可得てクリックしてんだよ",
-  "お前のそういうとこがダメなんだよ",
+  "誰の許可得てクリックしてんねん",
+  "お前のそういうとこがアカンねん",
   "親の顔が見てみたいわ",
   "お前、明日からもう来なくていいよ。",
   "キメェー",
   "そうですか、そうですね",
   "やめてくれへん？？",
   "I'm gay",
+  "顔があかんわ",
+  "なにを四天王"
 ];
 const specialAngryLines = [
-  "あなたには人を選ぶ権利があるわ❤️",
+  "あなたには飲ませる人を選ぶ権利があるわ❤️",
   "私のタイプだわ❤️三杯飲みなさいよ❤️",
 ];
 

@@ -70,25 +70,19 @@ async function handleLogin(request, url, expectedPassword, authToken) {
     const failureUrl = new URL(LOGIN_PATH, url.origin);
     failureUrl.searchParams.set("e", "1");
     failureUrl.searchParams.set("next", nextPath);
-    return Response.redirect(failureUrl.toString(), 302);
+    return redirectResponse(failureUrl.toString());
   }
 
   const successUrl = new URL(nextPath, url.origin);
-  const response = Response.redirect(successUrl.toString(), 302);
-  response.headers.append(
-    "Set-Cookie",
-    `${COOKIE_NAME}=${authToken}; Path=/; Max-Age=${COOKIE_TTL_SECONDS}; HttpOnly; Secure; SameSite=Lax`
-  );
-  return response;
+  return redirectResponse(successUrl.toString(), [
+    `${COOKIE_NAME}=${authToken}; Path=/; Max-Age=${COOKIE_TTL_SECONDS}; HttpOnly; Secure; SameSite=Lax`,
+  ]);
 }
 
 function handleLogout(url) {
-  const response = Response.redirect(new URL(LOGIN_PATH, url.origin).toString(), 302);
-  response.headers.append(
-    "Set-Cookie",
-    `${COOKIE_NAME}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`
-  );
-  return response;
+  return redirectResponse(new URL(LOGIN_PATH, url.origin).toString(), [
+    `${COOKIE_NAME}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`,
+  ]);
 }
 
 function hasValidSession(request, token) {
@@ -109,7 +103,7 @@ function parseCookies(cookieHeader) {
 function redirectToLogin(url) {
   const loginUrl = new URL(LOGIN_PATH, url.origin);
   loginUrl.searchParams.set("next", `${url.pathname}${url.search}`);
-  return Response.redirect(loginUrl.toString(), 302);
+  return redirectResponse(loginUrl.toString());
 }
 
 function getNextPath(rawNext) {
@@ -230,4 +224,12 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+}
+
+function redirectResponse(location, setCookies = []) {
+  const headers = new Headers({ Location: location });
+  for (const cookie of setCookies) {
+    headers.append("Set-Cookie", cookie);
+  }
+  return new Response(null, { status: 302, headers });
 }

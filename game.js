@@ -29,6 +29,7 @@ export function createAngerGame(options) {
   let wobbleIntervalId = null;
   let currentAngrySrc = faceAngrySrc;
   let isSpecialAngry = false;
+  let lastAngryLine = "";
 
   renderGrid();
   setResetVisible(false);
@@ -128,7 +129,9 @@ export function createAngerGame(options) {
       angryLineElement.textContent = "";
       return;
     }
-    angryLineElement.textContent = pickRandomLine(lines, random);
+    const nextLine = pickRandomLine(lines, random, lastAngryLine);
+    angryLineElement.textContent = nextLine;
+    lastAngryLine = nextLine;
   }
 
   function clearAngryLine() {
@@ -231,9 +234,18 @@ function pickUnique(items, count, random = Math.random) {
   return picked;
 }
 
-function pickRandomLine(lines, random = Math.random) {
+function pickRandomLine(lines, random = Math.random, previousLine = "") {
   if (lines.length === 1) return lines[0];
-  return lines[randomIndex(lines.length, random)];
+
+  const uniqueLines = Array.from(new Set(lines));
+  if (uniqueLines.length === 1) return uniqueLines[0];
+
+  let picked = uniqueLines[randomIndex(uniqueLines.length, random)];
+  if (picked !== previousLine) return picked;
+
+  // Avoid showing the same line twice in a row when alternatives exist.
+  const alternatives = uniqueLines.filter((line) => line !== previousLine);
+  return alternatives[randomIndex(alternatives.length, random)];
 }
 
 function pickNormalSrc(srcList, fallbackSrc, random = Math.random) {

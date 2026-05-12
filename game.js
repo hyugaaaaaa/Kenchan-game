@@ -6,10 +6,13 @@ export function createAngerGame(options) {
     angryZoomFace = null,
     angryLineElement = null,
     angryLines = [],
+    specialAngryLines = [],
     bodyElement = document.body,
     faceNormalSrc = "img/normal.png",
     faceNormalSrcs = null,
     faceAngrySrc = "img/angry.png",
+    faceSpecialAngrySrc = null,
+    specialAngryRate = 0,
     gridSize = 3,
     random = Math.random,
     schedule = setTimeout,
@@ -24,6 +27,8 @@ export function createAngerGame(options) {
   let angryIndex = -1;
   let gameOver = false;
   let wobbleIntervalId = null;
+  let currentAngrySrc = faceAngrySrc;
+  let isSpecialAngry = false;
 
   renderGrid();
   setResetVisible(false);
@@ -42,6 +47,7 @@ export function createAngerGame(options) {
       tile.alt = `顔 ${i + 1}`;
       tile.dataset.normalSrc = pickNormalSrc(faceNormalSrcs, faceNormalSrc, random);
       tile.src = tile.dataset.normalSrc;
+      tile.classList.toggle("is-normal2", isAltNormalSrc(tile.dataset.normalSrc));
       tile.dataset.index = String(i);
       tile.dataset.state = "normal";
 
@@ -63,6 +69,8 @@ export function createAngerGame(options) {
     const tappedIndex = Number(tile.dataset.index);
 
     if (tappedIndex === hazardIndex) {
+      currentAngrySrc = pickAngrySrc(faceAngrySrc, faceSpecialAngrySrc, specialAngryRate, random);
+      isSpecialAngry = currentAngrySrc === faceSpecialAngrySrc;
       setTileAngry(tile);
       angryIndex = tappedIndex;
       gameOver = true;
@@ -87,6 +95,8 @@ export function createAngerGame(options) {
     gameOver = false;
     angryIndex = -1;
     hazardIndex = randomIndex(totalTiles, random);
+    currentAngrySrc = faceAngrySrc;
+    isSpecialAngry = false;
     renderGrid();
     setResetVisible(false);
     setAngryOverlayVisible(false);
@@ -102,18 +112,23 @@ export function createAngerGame(options) {
 
   function setAngryOverlayVisible(visible) {
     if (!angryOverlay) return;
-    if (angryZoomFace) angryZoomFace.src = faceAngrySrc;
+    if (angryZoomFace) angryZoomFace.src = currentAngrySrc;
     angryOverlay.classList.toggle("is-visible", visible);
     angryOverlay.hidden = !visible;
   }
 
   function setAngryLine() {
     if (!angryLineElement) return;
-    if (!Array.isArray(angryLines) || angryLines.length === 0) {
+    const lines =
+      isSpecialAngry && Array.isArray(specialAngryLines) && specialAngryLines.length > 0
+        ? specialAngryLines
+        : angryLines;
+
+    if (!Array.isArray(lines) || lines.length === 0) {
       angryLineElement.textContent = "";
       return;
     }
-    angryLineElement.textContent = pickRandomLine(angryLines, random);
+    angryLineElement.textContent = pickRandomLine(lines, random);
   }
 
   function clearAngryLine() {
@@ -125,6 +140,7 @@ export function createAngerGame(options) {
     tile.dataset.state = "removed";
     tile.classList.remove("angry");
     tile.classList.remove("is-wobbling");
+    tile.classList.toggle("is-normal2", isAltNormalSrc(tile.dataset.normalSrc));
     tile.classList.add("removed");
     tile.src = tile.dataset.normalSrc || faceNormalSrc;
   }
@@ -132,9 +148,10 @@ export function createAngerGame(options) {
   function setTileAngry(tile) {
     tile.dataset.state = "angry";
     tile.classList.add("angry");
+    tile.classList.remove("is-normal2");
     tile.classList.remove("is-wobbling");
     tile.classList.remove("removed");
-    tile.src = faceAngrySrc;
+    tile.src = currentAngrySrc;
   }
 
   function startWobbleLoop() {
@@ -225,6 +242,17 @@ function pickNormalSrc(srcList, fallbackSrc, random = Math.random) {
   if (candidates.length === 0) return fallbackSrc;
   if (candidates.length === 1) return candidates[0];
   return candidates[randomIndex(candidates.length, random)];
+}
+
+function isAltNormalSrc(src) {
+  return /(?:^|\/)normal2\.[a-z0-9]+$/i.test(String(src || ""));
+}
+
+function pickAngrySrc(defaultSrc, specialSrc, specialRate, random = Math.random) {
+  if (!specialSrc) return defaultSrc;
+  if (specialRate <= 0) return defaultSrc;
+  if (specialRate >= 1) return specialSrc;
+  return random() < specialRate ? specialSrc : defaultSrc;
 }
 
 export function makeFallback(text, bg, fg, w, h) {

@@ -18,6 +18,10 @@ const angryLines = [
   "やめてくれへん？？",
   "I'm gay",
 ];
+const specialAngryLines = [
+  "あなたには人を選ぶ権利があるわ❤️",
+  "私のタイプだわ❤️三杯飲みなさいよ❤️",
+];
 
 let currentSize = 3;
 let game = null;
@@ -44,9 +48,12 @@ function mountGame(gridSize) {
     angryZoomFace,
     angryLineElement: angryLine,
     angryLines,
+    specialAngryLines,
     faceNormalSrc: "img/normal.png",
     faceNormalSrcs: ["img/normal.png", "img/normal2.png"],
     faceAngrySrc: "img/angry.png",
+    faceSpecialAngrySrc: "img/kiss.png",
+    specialAngryRate: 0.2,
     gridSize,
   });
   updateModeUi();
